@@ -1,15 +1,15 @@
-Package: com.billyellis.exploitchallenges
+Package: com.billyellis.roplevel1
 Version: 1.0
 Section: System
 Maintainer: Billy Ellis <billyellis2015@icloud.com>
 Depends:
 Provides:
 Architecture: iphoneos-arm
-Filename: Files/exploitchallenges/exploitchallenges.deb
+Filename: Files/roplevel1/roplevel1.deb
 Size:
 Installed-Size:
 MD5sum:
-Description:A collection of ARM programs for new security researchers to learn exploit development
-Name: Exploit Challenges
+Description:ROPLevel1 - a demo application used to practice writing exploits with Return Oriented Programming (for beginner security researchers).
+Name: ROPLevel1
 Author: Billy Ellis <billyellis2015@icloud.com>
-Depiction: http://billy-ellis.github.io/repo/Files/exploitchallenges/index.html
+Depiction: http://billy-ellis.github.io/repo/Files/roplevel1/index.html
