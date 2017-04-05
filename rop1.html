@@ -9,7 +9,6 @@
     border-radius: 50%;
 }
 body {
-	    background-image: url("mountain.png");
         background-size: cover;
         background-repeat:no-repeat;
         
@@ -24,72 +23,72 @@ body {
 <br>
 <br>
 
-<center><h1 style="font-family:Courier;color:white">ARM ROP Level 1</h1></center>
+<center><h1 style="font-family:Webdings;color:#444444">ARM ROP Level 1</h1></center>
 
 <br>
 
-<center><h2 style="font-family:Courier;color:white">Part 1: What is Return Oriented Programming?</h2></center>
+<center><h2 style="font-family:Webdings;color:#444444">Part 1: What is Return Oriented Programming?</h2></center>
 
 <br>
 
-<center><h3 style="font-family:Courier;color:gray">Before reading this tutorial on Return Oriented Programming, make sure that you have already read and understood the previous tutorial that covers the basic concepts of exploit development. This tutorial will demonstrate how the technique used to exploit the vulnerable program in the previous tutorial can be used with ROP (Return Oriented Programming) to complete more complicated/real-world tasks.</h3></center>
+<center><p style="font-family:Webdings;color:gray">Before reading this tutorial on Return Oriented Programming, make sure that you have already read and understood the previous tutorial that covers the basic concepts of exploit development. This tutorial will demonstrate how the technique used to exploit the vulnerable program in the previous tutorial can be used with ROP (Return Oriented Programming) to complete more complicated/real-world tasks.</p></center>
 
 <br>
 
-<center><h3 style="font-family:Courier;color:gray">Just like the previous tutorial, I will still be using an iPhone 4 running iOS 7.1.2 as my testing device but once again, feel free to follow along with any other 32 bit iOS (or any other ARM) device.</h3></center>
+<center><p style="font-family:Webdings;color:gray">Just like the previous tutorial, I will still be using an iPhone 4 running iOS 7.1.2 as my testing device but once again, feel free to follow along with any other 32 bit iOS (or any other ARM) device.</p></center>
 
 <br>
 
-<center><h3 style="font-family:Courier;color:gray">Return Oriented Programming is a modern exploitation technique that works by chaining together small parts of existing code within an application in order to make it perform a different task. This was originally used as an alternative to jumping to shellcode that an attacker could have written to the stack. Most modern systems now prevent memory from being both writeable and executable at the same time. This means that you can no longer execute any shellcode that you, as the attacker, manage to write in the process memory.</h3></center>
+<center><p style="font-family:Webdings;color:gray">Return Oriented Programming is a modern exploitation technique that works by chaining together small parts of existing code within an application in order to make it perform a different task. This was originally used as an alternative to jumping to shellcode that an attacker could have written to the stack. Most modern systems now prevent memory from being both writeable and executable at the same time. This means that you can no longer execute any shellcode that you, as the attacker, manage to write in the process memory.</p></center>
 
 <br>
 
-<center><h3 style="font-family:Courier;color:gray">Instead of writing a payload in assembly, we can write it in ROP and achieve the same result. As ROP involves using parts of existing code, we don't have to worry about it not being executable. Many people use ROP in order to disable DEP (Data Execution Prevetion) and then jump to shellcode. On iOS this is not possible, and so jailbreak exploits have to be written entirely in ROP.</h3></center>
+<center><p style="font-family:Webdings;color:gray">Instead of writing a payload in assembly, we can write it in ROP and achieve the same result. As ROP involves using parts of existing code, we don't have to worry about it not being executable. Many people use ROP in order to disable DEP (Data Execution Prevetion) and then jump to shellcode. On iOS this is not possible, and so jailbreak exploits have to be written entirely in ROP.</p></center>
 
 <br>
 <br>
 
-<center><h2 style="font-family:Courier;color:white">Part 2: Introduction to ARM assembly</h2></center>
+<center><h2 style="font-family:Webdings;color:#444444">Part 2: Introduction to ARM assembly</h2></center>
 
 <br>
 
-<center><h3 style="font-family:Courier;color:gray">Understanding and writing exploits in ROP requires more knowledge on assembly language than the previous tutorial. The previous tutorial required you only to find the address of the first instruction in a function and jump there. No analysis of the instructions themselves were needed. In ROP, it is important to understand exactly what is going on behind the scenes of each function as we need to be able to analyse these functions and find useful groups of instructions known as gadgets - more on that later.</h3></center>
+<center><p style="font-family:Webdings;color:gray">Understanding and writing exploits in ROP requires more knowledge on assembly language than the previous tutorial. The previous tutorial required you only to find the address of the first instruction in a function and jump there. No analysis of the instructions themselves were needed. In ROP, it is important to understand exactly what is going on behind the scenes of each function as we need to be able to analyse these functions and find useful groups of instructions known as gadgets - more on that later.</p></center>
 
 <br>
 
-<center><h3 style="font-family:Courier;color:gray">To be able to follow the rest of this tutorial and complete ROPLevel1 you will need to understand the basics of ARM assembly. I will do my best at explaining parts of it here, but it's probably a better idea to find a better tutorial online.</h3></center>
+<center><p style="font-family:Webdings;color:gray">To be able to follow the rest of this tutorial and complete ROPLevel1 you will need to understand the basics of ARM assembly. I will do my best at explaining parts of it here, but it's probably a better idea to find a better tutorial online.</p></center>
 
 <br>
 
-<center><h3 style="font-family:Courier;color:gray">Assembly language is actually very simple. You can think of it as programming with only 15 global variables. These variables (registers) can store data or addresses. Each instruction (one line of assembly code) manipulates these registers in some way. For example, "MOV R0, R7" moves the contents of R7 into R0. Another example is "PUSH {R9, PC}". The "PUSH" instruction pushes the values of the specified registers (in this case R9 and the PC) onto the stack.</h3></center>
+<center><p style="font-family:Webdings;color:gray">Assembly language is actually very simple. You can think of it as programming with only 15 global variables. These variables (registers) can store data or addresses. Each instruction (one line of assembly code) manipulates these registers in some way. For example, "MOV R0, R7" moves the contents of R7 into R0. Another example is "PUSH {R9, PC}". The "PUSH" instruction pushes the values of the specified registers (in this case R9 and the PC) onto the stack.</p></center>
 
 <br>
 
-<center><h3 style="font-family:Courier;color:gray">You'll notice that most functions (when disassembled) have 3 common stages. The start/setup, main body and clean up/end. The start section normally pushes some values onto the stack (often including the PC). The main body of the function is where all of the calculations or other function calls take place. And the end of the function pops some values off the stack back into some registers.</h3></center>
+<center><p style="font-family:Webdings;color:gray">You'll notice that most functions (when disassembled) have 3 common stages. The start/setup, main body and clean up/end. The start section normally pushes some values onto the stack (often including the PC). The main body of the function is where all of the calculations or other function calls take place. And the end of the function pops some values off the stack back into some registers.</p></center>
 
 <center><img src="understandarm.png"></center>
 
-<center><h3 style="font-family:Courier;color:gray">The above screenshot is a disassembly of the secret() function from the previous tutorial. As you can see I've highlighted the "PUSH" and "POP" instructions at the beginning and end of the function.</h3></center>
+<center><p style="font-family:Webdings;color:gray">The above screenshot is a disassembly of the secret() function from the previous tutorial. As you can see I've highlighted the "PUSH" and "POP" instructions at the beginning and end of the function.</p></center>
 
 <br>
 
-<center><h2 style="font-family:Courier;color:white">Part 3: How ROP works</h2></center>
+<center><h2 style="font-family:Webdings;color:#444444">Part 3: How ROP works</h2></center>
 
 <br>
 
-<center><h3 style="font-family:Courier;color:gray">Return Oriented Programming works by chaining together pieces of code that end in a return instruction. These are called "gadgets". When a gadget finishes executing, the return instruction at the end of it will tell the program to jump to the next gadget and so on. Using this, you can chain together an unlimited amount of gadgets.</h3></center>
+<center><p style="font-family:Webdings;color:gray">Return Oriented Programming works by chaining together pieces of code that end in a return instruction. These are called "gadgets". When a gadget finishes executing, the return instruction at the end of it will tell the program to jump to the next gadget and so on. Using this, you can chain together an unlimited amount of gadgets.</p></center>
 
 <br>
 
-<center><h3 style="font-family:Courier;color:gray">Gadgets are often used to setup some registers in some way before returning to a function. They can be found by disassembling a binary and searching for return instructions. On ARM, there is no "ret" instruction like on X86 or some other architectures. ARM return instructions manually move a value into the PC. For example, the "pop {r7, pc}" instruction at the end of the function in the screenshot above actually acts as a return instruction. This instruction pops values from the stack into the specified registers. The value that gets popped into the PC is the return address and so the program jumps there. ARM ROP gadgets may end in this instruction. Alternatively, a function could return by "bx lr" or branching to the Link Register which contains the return address of the function.</h3></center>
+<center><p style="font-family:Webdings;color:gray">Gadgets are often used to setup some registers in some way before returning to a function. They can be found by disassembling a binary and searching for return instructions. On ARM, there is no "ret" instruction like on X86 or some other architectures. ARM return instructions manually move a value into the PC. For example, the "pop {r7, pc}" instruction at the end of the function in the screenshot above actually acts as a return instruction. This instruction pops values from the stack into the specified registers. The value that gets popped into the PC is the return address and so the program jumps there. ARM ROP gadgets may end in this instruction. Alternatively, a function could return by "bx lr" or branching to the Link Register which contains the return address of the function.</p></center>
 
 <br>
 
-<center><h3 style="font-family:Courier;color:gray">Below is the source code of ROPLevel1 (I'll probably make level 2,3,4 etc in the future with more advanced objectives).</h3></center>
+<center><p style="font-family:Webdings;color:gray">Below is the source code of ROPLevel1 (I'll probably make level 2,3,4 etc in the future with more advanced objectives).</p></center>
 
 <br>
 
-<pre style="color:white">#include <stdio.h>
+<pre style="color:gray">#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -123,19 +122,19 @@ int main(){
 
 <br>
 
-<center><h3 style="font-family:Courier;color:gray">You can see that this program is vulnerable to the same gets() function as in the previous tutorial. There is also a secret() function which executes the "date" command. The aim for this challenge is to get the output of the "ls" command which will list the contents of the current directory. To do this, we must use ROP to chain together 2 functions - in other words, make the program execute these 2 functions one after the other.</h3></center>
+<center><p style="font-family:Webdings;color:gray">You can see that this program is vulnerable to the same gets() function as in the previous tutorial. There is also a secret() function which executes the "date" command. The aim for this challenge is to get the output of the "ls" command which will list the contents of the current directory. To do this, we must use ROP to chain together 2 functions - in other words, make the program execute these 2 functions one after the other.</p></center>
 
 <br>
 
-<center><h3 style="font-family:Courier;color:gray">You will see that the secret() function in this program calls system() and passes it the argument "string". This will be a useful function to use in our exploit as we need to execute a shell command and system() does just that. The argument it gives to system() is "string" which is a character array containing "date". So if, like in the previous tutorial, we were to overwrite the return address and jump to secret() we should successfully execute the "date" shell command which will print out the current date and time in the terminal.</h3></center>
+<center><p style="font-family:Webdings;color:gray">You will see that the secret() function in this program calls system() and passes it the argument "string". This will be a useful function to use in our exploit as we need to execute a shell command and system() does just that. The argument it gives to system() is "string" which is a character array containing "date". So if, like in the previous tutorial, we were to overwrite the return address and jump to secret() we should successfully execute the "date" shell command which will print out the current date and time in the terminal.</p></center>
 
 <br>
 
-<center><h3 style="font-family:Courier;color:gray">However, we want to execute "ls", not "date". To do this we first must find some gadgets or other functions that can help us to either change the contents of string[] before we execute it or supply system() with a different input. In this simple ROP example program, there happens to be a very useful function called change() which overwrites the data stored inside of string[] with "ls". Of course, in a real world situation you'd never find something as simple and obvious as this but this program is just used to demonstrate the fundamentals of ROP, so it's okay to have these useful functions just lying around ;)</h3></center>
+<center><p style="font-family:Webdings;color:gray">However, we want to execute "ls", not "date". To do this we first must find some gadgets or other functions that can help us to either change the contents of string[] before we execute it or supply system() with a different input. In this simple ROP example program, there happens to be a very useful function called change() which overwrites the data stored inside of string[] with "ls". Of course, in a real world situation you'd never find something as simple and obvious as this but this program is just used to demonstrate the fundamentals of ROP, so it's okay to have these useful functions just lying around ;)</p></center>
 
 <br>
 
-<center><h3 style="font-family:Courier;color:gray">A quick disassembly of both change() and secret() in gdb (use radare2 if you prefer) reveal the addresses at which they are located.</h3></center>
+<center><p style="font-family:Webdings;color:gray">A quick disassembly of both change() and secret() in gdb (use radare2 if you prefer) reveal the addresses at which they are located.</p></center>
 
 <br>
 
@@ -143,52 +142,52 @@ int main(){
 
 <br>
 
-<center><h3 style="font-family:Courier;color:gray">As we want to first jump to the change() function after overwriting the return address, we need to put the address of the change() function where we put the address of the secret() function in the previous tutorial. However, we need to plan ahead and think about what will happen when the change() function returns. To complete this ROP exploit we need the change() function to return into secret() - this is known as chaining. We need to chain these two functions together so that they execute one after the other.</h3></center>
+<center><p style="font-family:Webdings;color:gray">As we want to first jump to the change() function after overwriting the return address, we need to put the address of the change() function where we put the address of the secret() function in the previous tutorial. However, we need to plan ahead and think about what will happen when the change() function returns. To complete this ROP exploit we need the change() function to return into secret() - this is known as chaining. We need to chain these two functions together so that they execute one after the other.</p></center>
 
 <br>
 
-<center><h3 style="font-family:Courier;color:gray">To do this we need to understand how functions return back to their caller. When a function is called (lets assume from main()) the current value of the PC is moved into LR. The CPU then begins to execute the instructions inside the new function. As you saw earlier, the majority of functions (like secret() and change()) start by PUSHing some values onto the stack. In this case they PUSH R7 and LR. This means that the return address is now stored somewhere on the stack. At the end of the function the opposite is done. Some values are POP'd off the stack back into registers. In this case R7 and PC. This is effectively a return instruction in ARM assembly. The PC now will contain the return address and so go back to executing instructions where it left off from the previous function.</h3></center>
+<center><p style="font-family:Webdings;color:gray">To do this we need to understand how functions return back to their caller. When a function is called (lets assume from main()) the current value of the PC is moved into LR. The CPU then begins to execute the instructions inside the new function. As you saw earlier, the majority of functions (like secret() and change()) start by PUSHing some values onto the stack. In this case they PUSH R7 and LR. This means that the return address is now stored somewhere on the stack. At the end of the function the opposite is done. Some values are POP'd off the stack back into registers. In this case R7 and PC. This is effectively a return instruction in ARM assembly. The PC now will contain the return address and so go back to executing instructions where it left off from the previous function.</p></center>
 
 <br>
 
-<center><h3 style="font-family:Courier;color:gray">So from this we can understand that the PUSH {R7, LR} instruction actually has no effect on the function itself but is only needed to setup the stack so that the function can later return. We can actually just forget about this PUSH instruction and setup the stack ourselves with the correct values so that instead of change() trying to return normally, it returns into secret().</h3></center>
+<center><p style="font-family:Webdings;color:gray">So from this we can understand that the PUSH {R7, LR} instruction actually has no effect on the function itself but is only needed to setup the stack so that the function can later return. We can actually just forget about this PUSH instruction and setup the stack ourselves with the correct values so that instead of change() trying to return normally, it returns into secret().</p></center>
 
 <br>
 
-<center><h2 style="font-family:Courier;color:white">Part 4: Exploitation</h2></center>
+<center><h2 style="font-family:Webdings;color:#444444">Part 4: Exploitation</h2></center>
 
 <br>
 
-<center><h3 style="font-family:Courier;color:gray">To write this simple ROP exploit, we first want to use the exploit string we used in the previous tutorial but to redirect code execution to change(). The string should look like this - AAAABBBBCCCCDDDDEEEE\x30\xbe\x00\x00. Remeber to use the address of the second instruction in change(), not the first.</h3></center>
+<center><p style="font-family:Webdings;color:gray">To write this simple ROP exploit, we first want to use the exploit string we used in the previous tutorial but to redirect code execution to change(). The string should look like this - AAAABBBBCCCCDDDDEEEE\x30\xbe\x00\x00. Remeber to use the address of the second instruction in change(), not the first.</p></center>
 
 <br>
 
-<center><h3 style="font-family:Courier;color:gray">Once the change() function has finished executing, the final instruction will pop the top two values from the stack into R7 and PC. To ensure that the change() function returns into secret() we need to add the values for these registers onto the end of the exploit string. R7 is a general purpose register and won't have any affect on this exploit, so the value for this can be 0xffffffff or anything you want. The value for the PC must be the address of secret().</h3></center>
+<center><p style="font-family:Webdings;color:gray">Once the change() function has finished executing, the final instruction will pop the top two values from the stack into R7 and PC. To ensure that the change() function returns into secret() we need to add the values for these registers onto the end of the exploit string. R7 is a general purpose register and won't have any affect on this exploit, so the value for this can be 0xffffffff or anything you want. The value for the PC must be the address of secret().</p></center>
 
 <br>
 
-<center><h3 style="font-family:Courier;color:gray">So the final exploit string should look like this - AAAABBBBCCCCDDDDEEEE\x30\xbe\x00\x00\xff\xff\xff\xff\x70\xbe\x00\x00.</h3></center>
+<center><p style="font-family:Webdings;color:gray">So the final exploit string should look like this - AAAABBBBCCCCDDDDEEEE\x30\xbe\x00\x00\xff\xff\xff\xff\x70\xbe\x00\x00.</p></center>
 
 <br>
 
-<center><h3 style="font-family:Courier;color:gray">Let's see what happens when we run the program with this string.</h3></center>
+<center><p style="font-family:Webdings;color:gray">Let's see what happens when we run the program with this string.</p></center>
 
 <br>
 
 <center><img src="roplevel1complete.png"></center>
 
-<center><h3 style="font-family:Courier;color:gray">As you can see in the screenshot above, our exploit worked as expected! You can see we now have the output of every file in the current directory, something that the program originally wasn't intended to do.</h3></center>
+<center><p style="font-family:Webdings;color:gray">As you can see in the screenshot above, our exploit worked as expected! You can see we now have the output of every file in the current directory, something that the program originally wasn't intended to do.</p></center>
 
 
-<center><h2 style="font-family:Courier;color:white">Part 5: Conclusion</h2></center>
-
-<br>
-
-<center><h3 style="font-family:Courier;color:gray">As a result of reading this tutorial you should now understand the basic concepts of return oriented programming and how function/gadget chaining works. There is also a video version of this tutorial available here - https://www.youtube.com/watch?v=o4gxN6EUvCw.</h3></center>
+<center><h2 style="font-family:Webdings;color:#444444">Part 5: Conclusion</h2></center>
 
 <br>
 
-<center><h3 style="font-family:Courier;color:gray">If you have any questions about this tutorial or any feedback, tweet me @bellis1000 on Twitter. Thanks for reading!</h3></center>
+<center><p style="font-family:Webdings;color:gray">As a result of reading this tutorial you should now understand the basic concepts of return oriented programming and how function/gadget chaining works. There is also a video version of this tutorial available here - https://www.youtube.com/watch?v=o4gxN6EUvCw.</p></center>
+
+<br>
+
+<center><p style="font-family:Webdings;color:gray">If you have any questions about this tutorial or any feedback, tweet me @bellis1000 on Twitter. Thanks for reading!</p></center>
 
 </body>
 

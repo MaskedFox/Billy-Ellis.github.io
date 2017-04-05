@@ -1,0 +1,81 @@
+<html>
+
+<head>
+
+<title>ARM ROP Level 1</title>
+
+<style>
+.img-circle {
+    border-radius: 50%;
+}
+body {
+        background-size: cover;
+        background-repeat:no-repeat;
+        
+} 
+ 
+</style>
+
+</head>
+
+<body>
+
+<br>
+<br>
+
+<center><h1 style="font-family:Courier;color:#444444">Using ROP gadgets</h1></center>
+
+<br>
+
+<center><h2 style="font-family:Courier;color:#444444">Part 1: Introduction</h2></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">The purpose of ROPLevel2 is to introduce the idea of "ROP gadgets". This was breifly spoken about in the last tutorial. To recap, a gadget is a small sequence of assembly instructions that end in a "ret" or return instruction. Gadgets are used by exploit developers in order to set up various registers with certain values that will be later required.</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">In this tutorial we'll be using a gadget that pops a value from the stack into R0 and then returns. This will allow us to complete ROPLevel2.</p></center>
+
+<br>
+
+<center><h2 style="font-family:Courier;color:#444444">Part 2: Understanding the binary</h2></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">You can download ROPLevel2 from https://billy-ellis.github.io/ via Cydia. Once installed on your device, we can begin to analyse it.</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">Executing the binary will display a message explaining to us that the objective of this level is to execute a shell command of our choice by calling system(). system() is a function that takes one argument (being the string/shell command to be executed) and executes it. When system() is called, it expects the address in memory of the string to be stored in R0. This is where a gadget is useful.</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">We need to disassemble this binary and find a gadget that will allow us to control the value of R0 and then return. As this is not a real world example and is only a very small binary, a gadget has been deliberately planted inside the function gadget(). In a real world case, the program would likely be much more complex and so gadget discovery would be much easier.</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">Let's open ROPLevel2 in Hopper Disassembler (OS X only but feel free to use anything else such as GDB or radare2). If we analyse the gadget() function we can see it is made up of a single instruction.</p></center>
+
+<center><img src="gadgetdisas.png"></center>
+
+<center><p style="font-family:Courier;color:gray">This POP {R0, PC} instruction pops values off the stack into the specified registers. So jumping to this gadget will allow us to control both R0 and PC (the address the program will jump to next).</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">As we already know the system() function expects the address of the string to be in R0 we must set up the stack accordingly.</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">We first need to find a string that we can use as our shell command. In more advanced/real world situations you probably won't be as lucky as you will when trying to complete ROPLevel2. If we look in the strings section in Hopper, you can see there's 3 strings that can be executed as shell commands just sitting in the binary waiting to be used. We can pick any of these strings to use.</p></center>
+
+<br>
+
+<center>This tutorial is currently not complete. Check back soon.</center>
+
+</body>
+
+</style>
+
+</head>
+</html>
