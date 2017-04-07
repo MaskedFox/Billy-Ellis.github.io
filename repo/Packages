@@ -1,15 +1,31 @@
 Package: com.billyellis.roplevel1
 Version: 1.0
-Section: System
-Maintainer: Billy Ellis <billyellis2015@icloud.com>
-Depends:
-Provides:
 Architecture: iphoneos-arm
-Filename: Files/roplevel1/roplevel1.deb
-Size:
-Installed-Size:
-MD5sum:
-Description:ROPLevel1 - a demo application used to practice writing exploits with Return Oriented Programming (for beginner security researchers).
-Name: ROPLevel1
+Maintainer: Billy Ellis <billyellis2015@icloud.com>
+Filename: ./com.billyellis.roplevel1.deb
+Size: 
+MD5sum: a959b414cf430d9ca3c529cee5cf0310
+SHA1: 3143681b7a344b4332eab757c9255eef4035df48
+SHA256: 01fe8983eadeaa781174ec416787b81758a8cbeae92d67b2393bbca858863340
+Section: System
+Homepage: http://billyellis.net
+Description: ROPLevel1
 Author: Billy Ellis <billyellis2015@icloud.com>
-Depiction: http://billy-ellis.github.io/repo/Files/roplevel1/index.html
+Depiction: https://billy-ellis.github.io/repo/Files/roplevel1.html
+Name: ROPLevel1
+
+Package: com.billyellis.roplevel2
+Version: 1.0
+Architecture: iphoneos-arm
+Maintainer: Billy Ellis <billyellis2015@icloud.com>
+Filename: ./com.billyellis.roplevel2.deb
+Size: 
+MD5sum: 5834540cf9dc92bf2331ccf79c137a94
+SHA1: 9cbf4bc6f940f52b1b6c663af7af8f9505b00be1
+SHA256: 32b5835a6d328bbef456bb2f7b0eac182404ffbe8742f887c4fe03a1a66b6fea
+Section: System
+Homepage: http://billyellis.net
+Description: ROPLevel2
+Author: Billy Ellis <billyellis2015@icloud.com>
+Depiction: https://billy-ellis.github.io/repo/Files/roplevel2.html
+Name: ROPLevel2
