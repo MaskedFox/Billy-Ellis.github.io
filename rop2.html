@@ -57,9 +57,9 @@ body {
 
 <center><p style="font-family:Courier;color:gray">Let's open ROPLevel2 in Hopper Disassembler (OS X only but feel free to use anything else such as GDB or radare2). If we analyse the gadget() function we can see it is made up of a single instruction.</p></center>
 
-<center><img src="gadgetdisas.png"></center>
+<center><img src="rop2/gadgetdisas.png"></center>
 
-<center><p style="font-family:Courier;color:gray">This POP {R0, PC} instruction pops values off the stack into the specified registers. So jumping to this gadget will allow us to control both R0 and PC (the address the program will jump to next).</p></center>
+<center><p style="font-family:Courier;color:gray">This POP {R0, PC} instruction pops values off the stack into the specified registers. So jumping to this gadget will allow us to control both R0 and PC (the address the program will jump to next). Note down the address (0xbdd8) of the "gadget" as it will be useful later on.</p></center>
 
 <br>
 
@@ -67,11 +67,73 @@ body {
 
 <br>
 
-<center><p style="font-family:Courier;color:gray">We first need to find a string that we can use as our shell command. In more advanced/real world situations you probably won't be as lucky as you will when trying to complete ROPLevel2. If we look in the strings section in Hopper, you can see there's 3 strings that can be executed as shell commands just sitting in the binary waiting to be used. We can pick any of these strings to use.</p></center>
+<center><p style="font-family:Courier;color:gray">We first need to find a string that we can use as our shell command. In more advanced/real world situations you probably won't be as lucky as you will when trying to complete ROPLevel2. If we look in the strings section in Hopper, you can see there's 3 strings, that can be executed as shell commands, just sitting in the binary waiting to be used. We can pick any of these strings to use.</p></center>
+
+<center><img src="rop2/strings.png"></center>
+
+<center><p style="font-family:Courier;color:gray">We'll note down the address of the "ls -sail" string (0xc06c) so that we can use it later on. If this string was executed as a shell command, it would list all of the contents of the current directory along with information about each file/sub directory. We'll set this as our goal for this tutorial - to find out information about the other files in the same directory as this program by exploitation.</p></center>
 
 <br>
 
-<center>This tutorial is currently not complete. Check back soon.</center>
+<center><p style="font-family:Courier;color:gray">To be able to use this string as a shell command, we need to also have the address of the system() function so that using ROP, we can "call" (actually return into) this function and pass it the "ls -sail" string as it's parameter. Again using Hopper (or another disassembler), we can note this address down to be used later. One thing to keep in mind is that in this case, it's easier to not use the actual address of the real system() function but instead use the address of the imp___symbolstub1__system() function which effectively does the exact same thing. This however, prevents us from having to worry about library randomisation. So we note down the address 0xbdc4.</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">Now that we have the required memory addresses for our attack plan, we can proceed to craft our malicious exploit string.</p></center>
+
+<br>
+
+<center><h2 style="font-family:Courier;color:#444444">Part 3: Understanding the exploit</h2></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">If you haven't already read through the first two ARM exploitation tutorials on this site, do so before reading on as you may find certain things difficult to understand if not.</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">By executing "roplevel2" a few times and supplying a couple different inputs, it's easy enough to notice that this program has a very similar vulnerability to the programs covered in the earlier tutorials. A classic stack buffer overflow vulnerability is present, allowing an attacker to overwrite important values stored on the stack by supplying the process a large input.</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">To quickly calculate the offset to where in our input string we take control of the PC register, we can execute "roplevel2" with a patterned input like "AAAABBBBCCCCDDDDEEEEFFFFGGGGHHHHIIIIJJJJKKKKLLLLMMMMNNNNOOOOPPPPQQQQRRRRSSSSTTTTUUUUVVVVWWWWXXXXYYYYZZZZ" and then examining the crash log.</p></center>
+
+<center><img src="rop2/crashlog.png"></center>
+
+<center><p style="font-family:Courier;color:gray">We can quickly identify that the PC register contains value 0x47474746 after the crash which is the hex equivilant of "GGGG". This means that the address of wherever we want to redirect execution flow to must be placed in place of the "GGGG" in our string.</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">The theoretical outline for this exploit is as follows. First we overwrite the program counter with the address of our gadget. This gadget will setup the R0 register to contain our shell command string. Then, the program will return into system() and, as R0 is already setup, will execute our shell command. Exploit complete.</p></center>
+
+<br>
+
+<center><h2 style="font-family:Courier;color:#444444">Part 4: Exploitation</h2></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">Placing the address of our gadget in place of the "GGGG" is simple. We use the "\x" to allow us to enter a hex value, and enter it in reverse order (little endian). So the string so far should look something like this - AAAABBBBCCCCDDDDEEEEFFFF\xd8\xbd\x00\x00.</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">When the gadget is executed, it will "pop" the next 2 values from the stack into registers R0 and PC. This means that after the gadget() address in our string, we need the address of our shell command followed by the address of the next place we want to return to (being system()).</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">The result should look something like this - AAAABBBBCCCCDDDDEEEEFFFF\xd8\xbd\x00\x00\x6c\xc0\x00\x00\xc4\xbd\x00\x00.</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">When we pipe this exploit string into roplevel2, you can see that the exploit functions as expected and we are given a list of all other files in the current directory.</p></center>
+
+<center><img src="rop2/complete.png"></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">You can use any of the 3 strings as shell commands, so your output after you execute your exploit string may vary.</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">If you have any questions about this tutorial, tweet me @bellis1000. Check back soon for more advanced topics! Thanks for reading :)</p></center>
 
 </body>
 
