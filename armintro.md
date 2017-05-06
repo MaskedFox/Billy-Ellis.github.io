@@ -14,3 +14,5 @@ Also add http://coolstar.org/publicrepo and install `LLVM+Clang`. This will allo
 ![alt text][logo]
 
 [logo]: https://github.com/Billy-Ellis/Billy-Ellis.github.io/clang.png
+
+The other 2 essential things are `iFile` and an iOS terminal emulator of your choice (in my case, `MTerminal`). I assume the majority of people will already have these 2 applications installed.
