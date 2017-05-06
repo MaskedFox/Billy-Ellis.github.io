@@ -4,34 +4,16 @@ I'm Billy, a 16 year old iOS developer/beginner hacker interested in mobile secu
 
 I also run a YouTube channel teaching similar things which you can find [here](https://youtube.com/c/BillyEllis).
 
-### Markdown
+### Tutorials
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+The first set of tutorials on this site are based around the basic concepts of binary exploitation specifically on the ARM platform. This will apply to most mobile devices but it's best if you use an iOS device to follow along as that's what I'll be using.
 
-```markdown
-Syntax highlighted code block
+[An introduction to ARM exploitation](https://bellis1000.github.io/armintro.md/)
 
-# Header 1
-## Header 2
-### Header 3
+[Return Oriented Programming Basics](https://bellis1000.github.io/ropintro.md/)
 
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/Billy-Ellis/Billy-Ellis.github.io/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+[More on ROP and using gadgets](https://bellis1000.github.io/ropgadgets.md/)
 
 ### Support or Contact
 
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+If you have any questions about any of the tutorials posted here or have suggestions for future tutorials, tweet me  [here](https://twitter.com/bellis1000/).
