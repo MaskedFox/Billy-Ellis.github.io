@@ -11,3 +11,6 @@ To get started you'll need to install a few tools that'll allow you to compile C
 
 Also add http://coolstar.org/publicrepo and install `LLVM+Clang`. This will allow you to compile C programs on-device without the assistance of a computer. You'll also need an **SDK (Software Development Kit)**. I'm currently using the iPhoneOS8.1.sdk on my device. You can download these online or move them over to your device from Xcode on your Mac.
 
+![alt text][logo]
+
+[logo]: https://github.com/Billy-Ellis/Billy-Ellis.github.io/clang.png
