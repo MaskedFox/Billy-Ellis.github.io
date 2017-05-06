@@ -1,8 +1,8 @@
-## Welcome to GitHub Pages
+## Welcome to my site
 
-You can use the [editor on GitHub](https://github.com/Billy-Ellis/Billy-Ellis.github.io/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
+I'm Billy, a 16 year old iOS developer/beginner hacker interested in mobile security research and exploitation on ARM. On this site you will see various written tutorials related to exploit development and hacking aimed at beginners as well as a bit about me.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+I also run a YouTube channel teaching similar things which you can find [here](https://youtube.com/c/BillyEllis).
 
 ### Markdown
 
