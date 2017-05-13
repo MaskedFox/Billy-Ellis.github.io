@@ -1,0 +1,243 @@
+<html>
+
+<head>
+
+<title>ARM ROP Level 3</title>
+
+<style>
+.img-circle {
+    border-radius: 50%;
+}
+body {
+        background-size: cover;
+        background-repeat:no-repeat;
+        
+} 
+ 
+</style>
+
+</head>
+
+<body>
+
+<br>
+<br>
+
+<center><h1 style="font-family:Courier;color:#444444">Patching Data using ROP</h1></center>
+
+<br>
+
+<center><h2 style="font-family:Courier;color:#444444">Part 1: Introduction</h2></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">This Return Oriented Programming tutorial takes a look at a more advanced use of ROP - runtime patching. Make sure you've read and understood the writeups for ROPLevel1 and ROPLevel2 before attempting ROPLevel3. Runtime patching is the process of patching instructions or variables in a process during it's runtime as oppose to opening the binary in a disassembler, replacing instructions and producing a modified executable. Runtime patching with ROP does not involve modifying the executable file at all as all of the patches are applied to the program as it is running.</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">In many cases, it would probably be alot more time efficient and easier to simply statically patch a binary and produce a new executable. However, this is not possible when attempting to patch something such as the iOS kernel or another important process in an embedded system. With the iOS kernel, patching it invalidates it's digital code signature which will result in it being rejected by iBoot during boot time unless iBoot is also patched.</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">Therefore, in userland jailbreaks, the iOS kernel must have it's security features patched while it is already running through the user of a ROP payload.</p></center>
+
+<br>
+
+<center><h2 style="font-family:Courier;color:#444444">Part 2: How Patching with ROP Works</h2></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">To be able to apply patches to a running process using ROP, we first of all need a way to allow us to write arbitrary data to a memory location of our choice. For example, if we wanted to write a simple patch which involved replacing an instruction such as "BNE 0xffff" with "B 0xffff" (which would alter the execution flow every time that part of that function is executed), we would need to write the bytes in hex that code for "B 0xffff" to the memory location of the already existing "BNE 0xffff" instruction. This will result in that instruction being replaced by our custom one.</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">This isn't actually possible when working with simple userland programs & exploitation challenges (such as ROPLevel3) as the area of memory that stores the actual instructions (__TEXT) is marked as Non-Writeable. This means that attempting to overwrite instructions with our own will cause a crash and the exploit will fail. To workaround this, you must modify the kernel itself to be able to modify the page tables. Therefore, for this tutorial we will focus only on patching data (__DATA section) as this area of memory is marked as Writeable (meaning we can write arbitrary data to it without any issues.</p></center>
+
+<br>
+
+<center><h2 style="font-family:Courier;color:#444444">Part 3: Write Gadgets</h2></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">To be able to write arbitrary bytes to an arbitrary memory location, we need to use a specific type of ROP gadget. These types of gadgets are known as "write gadgets" or "write anywhere gadgets" as they allow an attacker to specific the data *and* the address in memory they wish to write it to.</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">A common example of a "write gadget" would be the one used in the evasi0n jailbreak - https://www.theiphonewiki.com/wiki/Kernel_memory_write_via_ROP_gadget. This gadget is simply "str r1, [r2]" followed by a return instruction (the actual registers involved do not matter as long as they are controlled by the attacker).</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">The "str" instruction in ARM will store a value from a register into a memory location. In this specific case, the value inside R1 will be stored at the location in memory that R2 points to.</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">If the attacker can manage to control the values of both of these registers, they can quite easily apply any patch they wish. For example, if the memory protections on the __TEXT section were non existant, the attacker could simply place the hex bytes for an instruction inside R1 and then place the address of the instruction to overwrite in R2. When the gadget is executed, the original instruction will be replaced with the patched one.</p></center>
+
+<br>
+
+<center><h2 style="font-family:Courier;color:#444444">Part 4: First look at ROPLevel3</h2></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">ROPLevel3 is the binary we will be exploiting in this tutorial to demonstrate some of the above points. You can download ROPLevel3 here - https://github.com/Billy-Ellis/Exploit-Challenges (ARMv7 Mach-O executable).</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">If you run the binary (via SSH or inside of MTerminal) you will see the following menu consisting of 3 options:</p></center>
+
+<center><img src="rop3/roplevel3menu.png"></center>
+
+<center><p style="font-family:Courier;color:gray">Option 1 allows the user to call a function that does nothing (apart from display a simple message).</p></center>
+
+<center><img src="rop3/normalfunc.png"></center>
+
+<center><p style="font-family:Courier;color:gray">Option 2 allows the user to call a more interesting function which gives 3 additional options, including the ability to spawn a shell ;). However, this second function is protected by a variable inside ROPLevel3. This variable is named "internal_mode" and it is a simple string containing "0". When this variable is set to "0", the program does not allow the function to be called. If the internal_mode variable is set to "1" (or anything other than 0 actually), the function *can* be called and the user can access the internal options.</p></center>
+
+<center><img src="rop3/internalfunc.png"></center>
+
+<center><p style="font-family:Courier;color:gray">This "internal_mode" variable is basically used to determine whether the user is running a regular version of ROPLevel3 or an internal/developer-only version.</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">Of course, the only public version of ROPLevel3 is a non-internal version and so the "internal_mode" variable is set as "0", meaning a user cannot access the second function.</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">The aim in this exploitation challenge is to write a ROP chain that will patch this variable to "1" (or something else other than 0) so that a user can run the internal function without any kind of permissions error.</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">(Note: you could easily patch this binary without using ROP and by simply modifying it's instructions inside of IDA Pro and then producing a new, already patched, executable, but the whole idea of this challenge is to do it using ROP.)</p></center>
+
+<center><h2 style="font-family:Courier;color:#444444">Part 5: Preparation</h2></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">Before we can do anything involving ROP or exploitation, let's start to understand the ROPLevel3 binary on a deeper level and see what actually goes on behind the scenes.</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">If we open ROPLevel3 in IDA Pro and navigate to the disassembled main() function, you will see some calls to printf() which are responsible for displaying the welcome message etc.</p></center>
+
+<center><img src="rop3/maindisas.png"></center>
+
+<center><p style="font-family:Courier;color:gray">Underneath that we can see a big loop and inside we see a call to printf() (again), a call to scanf() (to take user input) and a call to validate(). This loop is what controls the menu system.</p></center>
+
+<center><img src="rop3/maindisasmore.png"></center>
+
+<center><p style="font-family:Courier;color:gray">As we can see, the vulnerability in this program is (again) a stack buffer overflow vulnerability caused by scanf()'s lack of bounds checking. This is yet again the most simplest form of vulnerability, but the point of this exercise is not about the vulnerability discovery itself, but about the exploitation of it.</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">The validate() function looks interesting so let's have a look at what it contains.</p></center>
+
+<center><img src="rop3/validatedisas.png"></center>
+
+<center><p style="font-family:Courier;color:gray">At first glance this function looks complicated compared to main(). All it is doing is identifying which number the user entered and then carrying out the task associated with that number. For example, if number 1 is entered, the function func() is called.</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">If number 2 is entered, instead of immediately calling func_internal(), it first checks whether the "internal_mode" variable is set to "0". If it is set to "0", the validate() function will refuse to call func_internal() and instead display a message telling the user they do not have permission.</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">However, if "internal_mode" is set to anything other than "0", the validate() function happily calls func_internal().</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">Since this whole validation check is based around a single variable, all we need to do is patch that variable so it contains a value other than "0" and that way we will always be allowed to call the func_internal().</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">There are, of course, more advanced ways to go about patching this check that involve replacing instructions or adding our own, but patching a single value is much much simpler.</p></center>
+
+<br>
+
+<center><h2 style="font-family:Courier;color:#444444">Part 5.5: cs_enforcement_disable</h2></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">This part is not actually related to exploiting ROPLevel3, but I thought I'd mention this anyway as some of you may find it interesting.</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">Although ROPLevel3 is a simple binary designed to be used by beginner exploit developers, the exact process we will be using to patch a variable is actually used in real world exploits. For example, when developing an iOS kernel exploit, the attacker can patch the variable "cs_enforcement_disable" from "0" to "1" to disable the code signing enforcement, allowing any app to be run on the device.</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">You can think of "internal_mode" and "cs_enforcement_disable" as pretty much the same thing. They both represent the same idea of patching the value of a single variable to allow you to do something that you, as a general user, shouldn't be able to do normally.</p></center>
+
+<center><h2 style="font-family:Courier;color:#444444">Part 6: Finding Gadgets</h2></center>
+
+<center><p style="font-family:Courier;color:gray">To be able to craft our exploit, we need to first find suitable gadgets that will allow us to acheive our goal. We've already talked about the "write anywhere" gadget that will allow us to choose data and a location to write it to. This gadget has been hardcoded into ROPLevel3 to make it easier for you as the attacker. You can find the gadget inside the function write_anywhere().</p></center>
+
+<center><img src="rop3/writeanywhere.png"></center>
+
+<center><p style="font-family:Courier;color:gray">As this gadget involves the use of both R0 and R1, we need another gadget that we can use to set up those registers with our own values. This gadget has also been hardcoded into the binary. You can find it in the function gadget().</p></center>
+
+<center><img src="rop3/gadget.png"></center>
+
+<center><p style="font-family:Courier;color:gray">This gadget is similar to the ones used in both ROPLevel1 and ROPLevel2. It pops values off the stack into R0, R1 and PC.</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">These will be the only 2 gadget we will need to write this ROP chain.</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">The basic layout of our ROP chain will look something like this:</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:black">junk characters + gadget + new_value_of_variable + address_of_variable + write_gadget + 4_junk_bytes + main()</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">The 4_junk_bytes + main() at the end of the exploit string is there so that once the patch is applied, instead of the program crashing, it returns back to the start of the main() function. This effectively restarts the program with the patch applied.</p></center>
+
+<br>
+
+<center><h2 style="font-family:Courier;color:#444444">Part 7: Exploitation</h2></center>
+
+<center><p style="font-family:Courier;color:gray">To make it easier for you to keep track of what you are doing, you might want to write an exploit script for ROPLevel3 rather than just writing the exploit string but to save time with this tutorial, I won't do this.</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">Use IDA Pro or another disassembler to find all the required addresses and note them down. Then like the previous tutorials, use printf to pipe the input into ROPLevel3 (making sure to use \x to represent hex characters).</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">The exploit string should look something like this:</p></center>
+<center><p style="font-family:Courier;color:black">AAAABBBBCCCCDDDDEEEE\xd0\xbc\x00\x00AAAA\x30\xc0\x00\x00\xc0\xbc\x00\x00AAAA\xd8\xbc\x00\x00</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">Piping this string into ROPLevel3 will result in some unsual activity as you can see below.</p></center>
+
+<center><img src="rop3/brokenexploit.png"></center>
+
+<center><p style="font-family:Courier;color:gray">The program constantly loops back to the main() function and never stops. This prevents the user being able to enter anything after the exploit is run, rendering the exploit useless. This is caused because using printf to pipe an input into the program will actually repeatedly pipe in the input over and over again until the program no longer waits for input.</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">To stop this from happening, we can pipe the input but then run the "cat" command with no arguments. This solves our problem as running "cat" without an argument will cause it to wait for input from you.</p></center>
+
+<br>
+
+<center><p style="font-family:Courier;color:gray">Now when we run the exploit, everything works as expected and we are given access to func_internal().</p></center>
+
+<center><img src="rop3/exploitsucceeded.png"></center>
+
+<center><p style="font-family:Courier;color:gray">You can see that the program restarts itself and the value of "internal_mode" is set as "AAAA". As this is not "0", we will be allowed to call func_internal by typing "2".</p></center>
+
+<center><img src="rop3/internalfuncworking.png"></center>
+
+<center><p style="font-family:Courier;color:gray">As you can see, inside of this internal function we have access to a couple of new and useful options. We can type "2" once again to spawn a shell and that's it - ROPLevel3 complete!</p></center>
+
+<center><img src="rop3/r00t.png"></center>
+
+<center><p style="font-family:Courier;color:gray">(Yes, this would have been a whole lot easier if we had just simply redirected code execution to func_internal() in the first place, but that would mean we'd have to run the exploit every time we wanted to access that function. With patching the variable and restarting the program, there's no need for any additional exploitation as the program is now patched and will allow us to access func_internal() simply by choosing option 2 on the main menu. And anyway, this whole tutorial was designed to teach runtime patching, so there's no fun in cheating ;P)</p></center>
+
+<center><h2 style="font-family:Courier;color:#444444">Part 8: Conclusion</h2></center>
+
+<center><p style="font-family:Courier;color:gray">Hopefully this tutorial has taught you something new about the more advanced uses of ROP and how runtime patching works. If you have any additional questions about anything covered in this tutorial, tweet me @bellis1000. Also, be sure to check out the other binary exploitation tutorials on this site! Thanks for reading :)</p></center>
